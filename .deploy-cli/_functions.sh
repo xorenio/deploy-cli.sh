@@ -2,67 +2,12 @@
 
 # Author: admin@xoren.io
 # Script: _functions.sh
-# Link https://github.com/xorenio
+# Link https://github.com/xorenio/deploy-cli.sh
 # Description: Functions script.
 
-###
-#INDEX
-## Function
-# _log_error()
-# _log_info()
-# _log_debug()
-# _log_success()
-# _log_data()
-# _log_to_file()
-# _log_console()
-# _create_running_file()
-# _check_running_file()
-# _delete_running_file()
-# _exit_script()
-# _in_working_schedule()
-# _check_working_schedule()
-# _is_present()
-# _is_file_open()
-# _is_in_screen()
-# _interactive_shell()
-# _wait_pid_expirer()
-# _install_cronjob()
-# _remove_cronjob()
-# _calculate_folder_size()
-# _delete_old_project_files()
-# _valid_ip()
-# _set_location_var()
-# _check_project_secrets()
-# _load_project_secrets()
-# _write_project_secrets()
-# _ensure_project_secrets_file()
-# _replace_env_project_secrets()
-# _get_project_docker_compose_file()
-# _install_update_cron()
-# _remove_update_cron()
-# _git_service_provider()
-# _check_github_token()
-# _check_github_token_file()
-# _load_github_token()
-# _write_github_token()
-# _get_project_github_latest_sha()
-# _check_onedev_token()
-# _check_onedev_file()
-# _load_onedev_token()
-# _write_onedev_token()
-# _get_project_onedev_latest_sha()
-# _download_project_files()
-# _update()
-# _set_latest_sha()
-# _check_latest_sha()
-# _check_update()
-# _script_completion()
-# _setup()
-
-# Defaulting variables
+# Script variables
 NOWDATESTAMP="${NOWDATESTAMP:-$(date "+%Y-%m-%d_%H-%M-%S")}"
 
-# This script variables
 SCRIPT_NAME="${SCRIPT_NAME:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")" | sed 's/\.[^.]*$//')}"
 SCRIPT="${SCRIPT:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")}"
 SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
@@ -178,9 +123,28 @@ _delete_running_file() {
 
 # END - RUNNING FILE
 
+# Function: _exit_script
+# Description: Graceful exiting of script.
+# Parameters: None
+# Returns: None
+
+_exit_script() {
+
+    rm "${SCRIPT_LOG_EMAIL_FILE}"
+
+    # Delete running file
+    _delete_running_file
+
+    # Return users tty to starting directory or home or do nothing.
+    cd "${STARTING_LOCATION}" || cd "$HOME" || exit
+
+    # Making sure we do stop the script.
+    exit
+}
+
 # START - WORKING SCHEDULE
 
-# Function: _in_working_schedule
+# Function: _in_working_schedule (NOT WORKING, NOT FINISHED)
 # Description: Validate working schedule variable and checks if in time.
 # Parameters: None
 # Returns:
@@ -190,6 +154,8 @@ _delete_running_file() {
 
 _in_working_schedule() {
     local pattern="^[0-7]-[0-7]:[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]$"
+    local day_of_week current_hour current_day_schedule
+
     if [[ ! $WORKING_SCHEDULE =~ $pattern ]]; then
         _log_error "Invalid WORKING_SCHEDULE format. Please use the format: day(s):start_time-end_time."
         _exit_script
@@ -231,11 +197,10 @@ _in_working_schedule() {
 
         if [ "$current_hour" -ge "$start_time" ] && [ "$current_hour" -le "$end_time" ]; then
             _log_error "Script is running within the allowed time range. Stopping..."
-            echo 1
-            return
+            return 0
         fi
     fi
-    echo 0
+    return 1 # Outside of working hours
 }
 
 # Function: _check_working_schedule
@@ -359,8 +324,10 @@ _install_linux_dep() {
 # END - SET DISTRO VARIABLES
 
 # START - EXTRAS
-if [[ -f "${SCRIPT_DIR}/.${SCRIPT_NAME}/_extras.sh" ]]; then
-    # shellcheck source=_update.sh
-    source "${SCRIPT_DIR}/.${SCRIPT_NAME}/_extras.sh"
+if [[ ! -n "$(type -t _registered_extras)" ]]; then
+    if [[ -f "${SCRIPT_DIR}/.${SCRIPT_NAME}/_extras.sh" ]]; then
+        # shellcheck source=_functions.sh
+        source "${SCRIPT_DIR}/.${SCRIPT_NAME}/_extras.sh"
+    fi
 fi
 # END -EXTRAS

@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# This script variables
+# Author: admin@xoren.io
+# Script: _deployments.sh
+# Link https://github.com/xorenio/deploy-cli.sh
+# Description: Functions script.
+
+# Script variables
+NOWDATESTAMP="${NOWDATESTAMP:-$(date "+%Y-%m-%d_%H-%M-%S")}"
+
 SCRIPT_NAME="${SCRIPT_NAME:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")" | sed 's/\.[^.]*$//')}"
 SCRIPT="${SCRIPT:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")}"
 SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 SCRIPT_DIR_NAME="${SCRIPT_DIR_NAME:-$(basename "$PWD")}"
 SCRIPT_DEBUG=${SCRIPT_DEBUG:-false}
-
-# Terminal starting directory
-STARTING_LOCATION=${STARTING_LOCATION:-"$(pwd)"}
 
 # Deployment environment
 DEPLOYMENT_ENV=${DEPLOYMENT_ENV:-"production"}
@@ -885,37 +889,6 @@ _download_project_files() {
 }
 
 # END - UPDATE FUNCTIONS
-
-# START - COMPLETION
-# _script_completion() {
-#     local cur prev opts
-#     COMPREPLY=()
-#     cur="${COMP_WORDS[COMP_CWORD]}"
-#     prev="${COMP_WORDS[COMP_CWORD-1]}"
-#     opts="user:add linux:install setup:hpages setup:ssh:keys setup:certbot setup:git:profile setup:well-known certbot:add system:json repo:check repo:update queue:worker config:backup config:restore version:local version:remote"
-
-#     case "${prev}" in
-#         certbot:add)
-#             # Custom completion for certbot:add option
-#             COMPREPLY=($(compgen -f -- "${cur}"))
-#             return 0
-#             ;;
-#         user:add)
-#             # Custom completion for user:add option
-#             COMPREPLY=($(compgen -f -- "${cur}"))
-#             return 0
-#             ;;
-#         *)
-#             ;;
-#     esac
-
-#     COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
-#     return 0
-# }
-
-# complete -F _script_completion "${SCRIPT}"
-
-# END - COMPLETION
 
 # START - SETUP
 

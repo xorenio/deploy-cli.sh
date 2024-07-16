@@ -21,10 +21,9 @@
 
 # START - Script setup and configs
 
-# Defaulting variables
+# Script variables
 NOWDATESTAMP=$(date "+%Y-%m-%d_%H-%M-%S")
 
-# This script variables
 SCRIPT_NAME=$(basename "$(test -L "$0" && readlink "$0" || echo "$0")" | sed 's/\.[^.]*$//')
 SCRIPT=$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -167,13 +166,20 @@ replace:env                                 Replace env file vars from secrets.
 write:secrets                               Create secrets file outside of repo.
 write:token:github                          To setup the local GitHub token.
 write:token:onedev                          To setup the local Onedev token.
+
 EOF
+    if [[ -n "$(type -t __display_info_extras)" ]]; then
+        __display_info_extras
+    fi
 }
 
 # START - SCRIPT RUNTIME
 
 ## Command line argument
 if [[ ${#SCRIPT_CMD_ARG} -ge 1 ]]; then
+    if [[ -n "$(type -t __extras_options)" ]]; then
+        __extras_options
+    fi
     case "${SCRIPT_CMD_ARG[0]}" in
     "setup")
         _setup

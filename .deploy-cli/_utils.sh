@@ -1,6 +1,13 @@
 #!/bin/bash
 
-# This script variables
+# Author: admin@xoren.io
+# Script: _utils.sh
+# Link https://github.com/xorenio/deploy-cli.sh
+# Description: Functions script.
+
+# Script variables
+NOWDATESTAMP="${NOWDATESTAMP:-$(date "+%Y-%m-%d_%H-%M-%S")}"
+
 SCRIPT_NAME="${SCRIPT_NAME:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")" | sed 's/\.[^.]*$//')}"
 SCRIPT="${SCRIPT:-$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")}"
 SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "$0")" && pwd)}"
@@ -238,3 +245,37 @@ _set_location_var() {
         ISOLOCATION="${ISOLOCATION:(-2)}"
     fi
 }
+
+# END - GEOLCATION FUNCTIONS
+
+# START - COMPLETION
+
+# _script_completion() {
+#     local cur prev opts
+#     COMPREPLY=()
+#     cur="${COMP_WORDS[COMP_CWORD]}"
+#     prev="${COMP_WORDS[COMP_CWORD-1]}"
+#     opts="user:add linux:install setup:hpages setup:ssh:keys setup:certbot setup:git:profile setup:well-known certbot:add system:json repo:check repo:update queue:worker config:backup config:restore version:local version:remote"
+
+#     case "${prev}" in
+#         certbot:add)
+#             # Custom completion for certbot:add option
+#             COMPREPLY=($(compgen -f -- "${cur}"))
+#             return 0
+#             ;;
+#         user:add)
+#             # Custom completion for user:add option
+#             COMPREPLY=($(compgen -f -- "${cur}"))
+#             return 0
+#             ;;
+#         *)
+#             ;;
+#     esac
+
+#     COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
+#     return 0
+# }
+
+# complete -F _script_completion "${SCRIPT}"
+
+# END - COMPLETION
