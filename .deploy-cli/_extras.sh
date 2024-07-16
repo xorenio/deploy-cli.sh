@@ -48,7 +48,6 @@ _registered_extras() {
 # Returns: 0
 
 __extras_options() {
-    local SCRIPT_CMD_ARG="$1"
     case "${SCRIPT_CMD_ARG[0]}" in
     "user:create")
         _create_user "${FUNCTION_ARG[@]}"
