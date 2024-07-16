@@ -1,0 +1,99 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      sshHost:
+        description: 'Setup DEPLOYMENT_SSH_HOST?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+      localSshKnownEntry:
+        description: 'Setup DEPLOYMENT_SSH_HOST_KNOWN_ENTRY?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+      sshUsername:
+        description: 'Setup DEPLOYMENT_SSH_USERNAME?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+      sshPrivateKey:
+        description: 'Setup DEPLOYMENT_SSH_PRIVATE_KEY?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+      sshAppPath:
+        description: 'Setup DEPLOYMENT_PATH?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+      githubToken:
+        description: 'Setup DEPLOYMENT_GITHUB_TOKEN?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+        - 'yes'
+        - 'no'
+jobs:
+  ssh-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if all required secrets are set and not empty
+        run: |
+          secrets=(DEPLOYMENT_SSH_HOST DEPLOYMENT_SSH_HOST_KNOWN_ENTRY DEPLOYMENT_SSH_USERNAME DEPLOYMENT_SSH_PRIVATE_KEY DEPLOYMENT_PATH DEPLOYMENT_GITHUB_TOKEN)
+          for secret in "${secrets[@]}"; do
+            if [ -z "${{ secrets[$secret] }}" ]; then
+              echo "$secret is not set or is empty. Exiting."
+              exit 1
+            else
+              echo "$secret is set and not empty."
+            fi
+          done
+      - name: Check user inputs
+        run: |
+          if [[ "${{ inputs.sshHost }}" == "yes" ]] && \
+             [[ "${{ inputs.localSshKnownEntry }}" == "yes" ]] && \
+             [[ "${{ inputs.sshUsername }}" == "yes" ]] && \
+             [[ "${{ inputs.sshPrivateKey }}" == "yes" ]] && \
+             [[ "${{ inputs.sshAppPath }}" == "yes" ]] && \
+             [[ "${{ inputs.githubToken }}" == "yes" ]]; then
+            echo "All required inputs are set to 'yes'. Proceeding with SSH connection."
+          fi
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 22 ${{ secrets.DEPLOYMENT_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          ssh ${{ secrets.DEPLOYMENT_SSH_USERNAME }}@${{ secrets.DEPLOYMENT_SSH_HOST }} <<'ENDSSH'
+          # This one-liner combines the file existence check, sourcing the file, checking if the variable is set, and writing to the file if the variable is not set.
+          [[ -f "$HOME/.github_token" ]] && source "$HOME/.github_token"; [[ -z "${GITHUB_TOKEN+x}" ]] && echo "GITHUB_TOKEN=${{ secrets.DEPLOYMENT_GITHUB_TOKEN }}" > "$HOME/.github_token"
+          # Run deployment script.
+          bash ~/$(hostname)/deploy-cli.sh update ${{ github.sha }}
+          export DEBIAN_FRONTEND=dialog
+          ENDSSH
+          rm ~/.ssh/id_rsa;
+          rm ~/.ssh/known_hosts;
